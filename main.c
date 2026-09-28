@@ -1,74 +1,92 @@
+#include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-typedef struct {
-  // memory
-  uint8_t memory[4096];
+#include "interpreter.c"
 
-  // registers
-  // http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#:~:text=12%20bits%20are%20usually%20used
-
-  uint8_t v0;
-  uint8_t v1;
-  uint8_t v2;
-  uint8_t v3;
-  uint8_t v4;
-  uint8_t v5;
-  uint8_t v6;
-  uint8_t v7;
-  uint8_t v8;
-  uint8_t v9;
-  uint8_t v10;
-  uint8_t v11;
-  uint8_t v12;
-  uint8_t v13;
-  uint8_t v14;
-  uint8_t v15;
-
-  // lowest (rightmost) 12 bits are usually used
-  uint8_t v_addr; // vi
-  uint8_t v_flag; // vf
-
-  uint8_t v_sound; // vs
-  uint8_t v_delay; // vd
-
-  uint16_t program_counter; // pc
-  uint8_t stack_pointer;    // sp
-
-  uint16_t stack[16];
-
-} chip_context;
-
-// probably unneeded but leaving it for now so its in my mind
-typedef struct {
-  bool display[64][32];
-} display;
-
-typedef struct {
-  // probablly some sort of pipe indicating "up <key>" and "down <key>"
-} keyboard;
+void help() {
+  printf("Chip-8 interpreter.\n");
+  printf("Usage: chip-8 [FILENAME] [OPTION]\n");
+  printf("  -c,         stop at cycle n\n");
+}
 
 int main(int argc, char *argv[]) {
+  bool verbose = false;
+
   FILE *fptr;
+  ChipContext *chip_context = calloc(1, sizeof(ChipContext));
+  Display *display = calloc(1, sizeof(Display));
+
+  int32_t cycles = -1;
 
   // no file specified
   if (argc < 2) {
-    printf("no file specified");
+    printf("Error: No file specified\n");
     return 1;
   }
 
+  // update flags
+  int opt;
+  while ((opt = getopt(argc, argv, "c:v")) != -1) {
+    switch (opt) {
+    case 'v':
+      verbose = true;
+      break;
+    case 'c':
+      cycles = atoi(optarg);
+      break;
+    }
+  }
+
   // open file
-  fptr = fopen(argv[1], "rw");
+  if (verbose)
+    printf("opening file...\n");
+  fptr = fopen(argv[0], "rw");
 
   // file failed to open
   if (fptr == NULL) {
     printf("Error: Could not open file <%s>", argv[1]);
     return 1;
+  } else if (verbose) {
+    printf("file openned succesfully\n");
+  }
+
+  // run interpreter
+  if (verbose)
+    printf("initializing timer...\n");
+  // if (verbose)
+  //   printf("timer initialized");
+  uint64_t last_tick = SDL_GetTicks64();
+
+  printf("cycles: %d\n", cycles);
+  while (cycles > 0 || cycles == -1) {
+    // wait for 60hz
+    while ((SDL_GetTicks64() - last_tick) < 16) {
+        SDL_Delay(1); // Frees the CPU to prevent 100% core usage
+    }
+    last_tick = SDL_GetTicks64();
+
+    // run state
+    printf("running state machine...\n");
+    uint8_t rc = return_code(*chip_context, *display, fptr);
+    printf("cycle closed with code %d\n", rc);
+
+    // update cycle
+    if (cycles != -1) {
+      cycles--;
+    }
+
+    printf("executing\n");
   }
 
   // cleanup & exit
   fclose(fptr);
+
+  free(chip_context);
+  free(display);
+
   return 0;
 }
