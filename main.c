@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "interpreter.c"
+#include "chip-8.h"
 
 void help() {
   printf("Chip-8 interpreter.\n");
@@ -16,7 +16,7 @@ void help() {
 int main(int argc, char *argv[]) {
   bool verbose = false;
 
-  FILE *fptr;
+  FILE *ROM;
   ChipContext *chip_context = calloc(1, sizeof(ChipContext));
   Display *display = calloc(1, sizeof(Display));
 
@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
   // open file
   if (verbose)
     printf("opening file...\n");
-  fptr = fopen(argv[0], "rw");
+  ROM = fopen(argv[0], "rw");
 
   // file failed to open
-  if (fptr == NULL) {
+  if (ROM == NULL) {
     printf("Error: Could not open file <%s>", argv[1]);
     return 1;
   } else if (verbose) {
@@ -65,14 +65,22 @@ int main(int argc, char *argv[]) {
   while (cycles > 0 || cycles == -1) {
     // wait for 60hz
     while ((SDL_GetTicks64() - last_tick) < 16) {
-        SDL_Delay(1); // Frees the CPU to prevent 100% core usage
+      SDL_Delay(1); // Frees the CPU to prevent 100% core usage
     }
     last_tick = SDL_GetTicks64();
 
-    // run state
-    printf("running state machine...\n");
-    uint8_t rc = return_code(*chip_context, *display, fptr);
-    printf("cycle closed with code %d\n", rc);
+    // == run state ==
+
+    // fetch instruction
+    if (verbose)
+      printf("fetching instruction...\n");
+    Instruction instruction = fetch(chip_context, ROM);
+    if (verbose)
+      printf("instruction <> fetched\n");
+
+    // execute instruction
+
+    // update display
 
     // update cycle
     if (cycles != -1) {
@@ -83,7 +91,7 @@ int main(int argc, char *argv[]) {
   }
 
   // cleanup & exit
-  fclose(fptr);
+  fclose(ROM);
 
   free(chip_context);
   free(display);

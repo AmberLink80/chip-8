@@ -1,5 +1,16 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// probably unneeded but leaving it for now so its in my mind
+typedef struct Display {
+  bool display[64][32];
+} Display;
+
+typedef struct Keypad {
+  // probablly some sort of pipe indicating "up <key>" and "down <key>"
+} Keypad;
 
 typedef struct ChipContext {
   // memory
@@ -37,13 +48,11 @@ typedef struct ChipContext {
 
   uint16_t stack[16];
 
+  Display display;
+  Keypad keypad;
 } ChipContext;
 
-// probably unneeded but leaving it for now so its in my mind
-typedef struct Display {
-  bool display[64][32];
-} Display;
+typedef int8_t (*Instruction)(ChipContext *chip_context, FILE *ROM);
+Instruction fetch(ChipContext *chip_context, FILE *ROM);
 
-typedef struct Keyboard {
-  // probablly some sort of pipe indicating "up <key>" and "down <key>"
-} Keyboard;
+int8_t return_code(ChipContext *chip_context, FILE *ROM);
