@@ -1,8 +1,10 @@
 #include "chip-8.h"
 #include <stdint.h>
 
-const uint8_t CLC = 0x00E0;
-const uint8_t RET = 0x00EE;
+#define mask_0xF000(a) (a % 0xF000)
+#define mask_0xF00F(a) (a % 0xF00F)
+#define mask_0xF0FF(a) (a % 0xF00F)
+#define mask_0xF0FF(a) (a % 0xF00F)
 
 void print_display(Display display) {
   // update display
@@ -29,18 +31,85 @@ void print_display(Display display) {
   printf("\u2518\n");
 }
 
-int8_t return_code(ChipContext *chip_context, FILE *ROM) {
-  return 0;
-}
+int8_t return_code(ChipContext *chip_context, FILE *ROM) { return 0; }
 
-Instruction fetch(ChipContext *chip_context, FILE *ROM) {
+Instruction fetch_and_decode(ChipContext *chip_context, FILE *ROM) {
   uint16_t raw_instruction =
       chip_context->memory[chip_context->program_counter];
 
+  // TODO: break this up into branches
+  // just want to get something working for now
+
   if (raw_instruction == 0x00E0) {
-    return NULL;
+    return CLS;
   } else if (raw_instruction == 0x00EE) {
-    return NULL;
+    return RET;
+  } else if (mask_0xF000(raw_instruction) == 0x0000) {
+    return SYS_addr;
+  } else if (mask_0xF000(raw_instruction) == 0x1000) {
+    return JP_addr;
+  } else if (mask_0xF000(raw_instruction) == 0x2000) {
+    return CALL_addr;
+  } else if (mask_0xF000(raw_instruction) == 0x3000) {
+    return SE_Vx_byte;
+  } else if (mask_0xF000(raw_instruction) == 0x4000) {
+    return SNE_Vx_byte;
+  } else if (mask_0xF000(raw_instruction) == 0x5000) {
+    return SE_Vx_Vy;
+  } else if (mask_0xF000(raw_instruction) == 0x6000) {
+    return LD_Vx_byte;
+  } else if (mask_0xF000(raw_instruction) == 0x7000) {
+    return ADD_Vx_byte;
+  } else if (mask_0xF00F(raw_instruction) == 0x8000) {
+    return LD_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8001) {
+    return OR_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8002) {
+    return AND_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8003) {
+    return XOR_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8004) {
+    return ADD_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8005) {
+    return SUB_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8006) {
+    return SHR_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x8007) {
+    return SUBN_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x800E) {
+    return SHL_Vx_Vy;
+  } else if (mask_0xF00F(raw_instruction) == 0x9000) {
+    return SHL_Vx_Vy;
+  } else if (mask_0xF000(raw_instruction) == 0xA000) {
+    return LD_I_addr;
+  } else if (mask_0xF000(raw_instruction) == 0xB000) {
+    return JP_V0_addr;
+  } else if (mask_0xF000(raw_instruction) == 0xC000) {
+    return RND_Vx_byte;
+  } else if (mask_0xF000(raw_instruction) == 0xD000) {
+    return DRW_Vx_nibble;
+  } else if (mask_0xF0FF(raw_instruction) == 0xE09E) {
+    return SKP_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xE0A1) {
+    return SKNP_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF007) {
+    return LD_Vx_DT;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF00A) {
+    return LD_Vx_K;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF015) {
+    return LD_DT_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF018) {
+    return LD_ST_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF01E) {
+    return ADD_I_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF029) {
+    return LD_F_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF033) {
+    return LD_B_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF055) {
+    return LD_I_Vx;
+  } else if (mask_0xF0FF(raw_instruction) == 0xF065) {
+    return LD_Vx_I;
   }
 
   return NULL;

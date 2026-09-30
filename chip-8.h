@@ -52,7 +52,45 @@ typedef struct ChipContext {
   Keypad keypad;
 } ChipContext;
 
-typedef int8_t (*Instruction)(ChipContext *chip_context, FILE *ROM);
-Instruction fetch(ChipContext *chip_context, FILE *ROM);
+typedef void (*Instruction)(ChipContext *chip_context, FILE *ROM);
+Instruction fetch_decode(ChipContext *chip_context, FILE *ROM);
 
 int8_t return_code(ChipContext *chip_context, FILE *ROM);
+
+// op codes
+void SYS_addr(ChipContext *chip_context, FILE *ROM);
+void CLS(ChipContext *chip_context, FILE *ROM);
+void RET(ChipContext *chip_context, FILE *ROM);
+void JP_addr(ChipContext *chip_context, FILE *ROM);
+void CALL_addr(ChipContext *chip_context, FILE *ROM);
+void SE_Vx_byte(ChipContext *chip_context, FILE *ROM);
+void SNE_Vx_byte(ChipContext *chip_context, FILE *ROM);
+void SE_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void LD_Vx_byte(ChipContext *chip_context, FILE *ROM);
+void ADD_Vx_byte(ChipContext *chip_context, FILE *ROM);
+void LD_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void OR_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void AND_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void XOR_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void ADD_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void SUB_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void SHR_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void SUBN_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void SUBN_Vx_VY(ChipContext *chip_context, FILE *ROM);
+void SHL_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void SNE_Vx_Vy(ChipContext *chip_context, FILE *ROM);
+void LD_I_addr(ChipContext *chip_context, FILE *ROM);
+void JP_V0_addr(ChipContext *chip_context, FILE *ROM);
+void RND_Vx_byte(ChipContext *chip_context, FILE *ROM);
+void DRW_Vx_nibble(ChipContext *chip_context, FILE *ROM);
+void SKP_Vx(ChipContext *chip_context, FILE *ROM);
+void SKNP_Vx(ChipContext *chip_context, FILE *ROM);
+void LD_Vx_DT(ChipContext *chip_context, FILE *ROM);
+void LD_Vx_K(ChipContext *chip_context, FILE *ROM);
+void LD_DT_Vx(ChipContext *chip_context, FILE *ROM);
+void LD_ST_Vx(ChipContext *chip_context, FILE *ROM);
+void ADD_I_Vx(ChipContext *chip_context, FILE *ROM);
+void LD_F_Vx(ChipContext *chip_context, FILE *ROM);
+void LD_B_Vx(ChipContext *chip_context, FILE *ROM);
+void LD_I_Vx(ChipContext *chip_context, FILE *ROM);
+void LD_Vx_I(ChipContext *chip_context, FILE *ROM);

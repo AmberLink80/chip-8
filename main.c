@@ -69,18 +69,23 @@ int main(int argc, char *argv[]) {
     }
     last_tick = SDL_GetTicks64();
 
-    // == run state ==
-
     // fetch instruction
+
     if (verbose)
-      printf("fetching instruction...\n");
-    Instruction instruction = fetch(chip_context, ROM);
+      printf("fetching and decoding instruction...\n");
+    Instruction instruction = fetch_decode(chip_context, ROM);
     if (verbose)
-      printf("instruction <> fetched\n");
+      printf("instruction <> fetched and decoded\n");
 
     // execute instruction
+    if (verbose)
+      printf("executing instruction <>\n");
+    instruction(chip_context, ROM);
+    if (verbose)
+      printf("executed instruction <>\n");
 
     // update display
+    
 
     // update cycle
     if (cycles != -1) {
