@@ -14,7 +14,7 @@ typedef struct Keypad {
 
 typedef struct ChipContext {
   // memory
-  uint8_t memory[4096];
+  uint16_t *memory;
 
   // registers
   // http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#:~:text=12%20bits%20are%20usually%20used
@@ -46,51 +46,58 @@ typedef struct ChipContext {
   uint16_t program_counter; // pc
   uint8_t stack_pointer;    // sp
 
-  uint16_t stack[16];
+  uint16_t *stack;
 
   Display display;
   Keypad keypad;
 } ChipContext;
 
-typedef void (*Instruction)(ChipContext *chip_context, FILE *ROM);
-Instruction fetch_decode(ChipContext *chip_context, FILE *ROM);
+typedef void (*Instruction)(ChipContext *chip_context,
+                            uint16_t raw_instruction);
 
-int8_t return_code(ChipContext *chip_context, FILE *ROM);
+void print_display(Display display);
+
+uint16_t fetch(ChipContext *chip_context);
+Instruction decode(uint16_t raw_instruction);
+
+// raw_instruction (uint16_t) will be held in the method call instruction
+// (Instruction)
 
 // op codes
-void SYS_addr(ChipContext *chip_context, FILE *ROM);
-void CLS(ChipContext *chip_context, FILE *ROM);
-void RET(ChipContext *chip_context, FILE *ROM);
-void JP_addr(ChipContext *chip_context, FILE *ROM);
-void CALL_addr(ChipContext *chip_context, FILE *ROM);
-void SE_Vx_byte(ChipContext *chip_context, FILE *ROM);
-void SNE_Vx_byte(ChipContext *chip_context, FILE *ROM);
-void SE_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void LD_Vx_byte(ChipContext *chip_context, FILE *ROM);
-void ADD_Vx_byte(ChipContext *chip_context, FILE *ROM);
-void LD_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void OR_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void AND_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void XOR_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void ADD_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void SUB_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void SHR_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void SUBN_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void SUBN_Vx_VY(ChipContext *chip_context, FILE *ROM);
-void SHL_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void SNE_Vx_Vy(ChipContext *chip_context, FILE *ROM);
-void LD_I_addr(ChipContext *chip_context, FILE *ROM);
-void JP_V0_addr(ChipContext *chip_context, FILE *ROM);
-void RND_Vx_byte(ChipContext *chip_context, FILE *ROM);
-void DRW_Vx_nibble(ChipContext *chip_context, FILE *ROM);
-void SKP_Vx(ChipContext *chip_context, FILE *ROM);
-void SKNP_Vx(ChipContext *chip_context, FILE *ROM);
-void LD_Vx_DT(ChipContext *chip_context, FILE *ROM);
-void LD_Vx_K(ChipContext *chip_context, FILE *ROM);
-void LD_DT_Vx(ChipContext *chip_context, FILE *ROM);
-void LD_ST_Vx(ChipContext *chip_context, FILE *ROM);
-void ADD_I_Vx(ChipContext *chip_context, FILE *ROM);
-void LD_F_Vx(ChipContext *chip_context, FILE *ROM);
-void LD_B_Vx(ChipContext *chip_context, FILE *ROM);
-void LD_I_Vx(ChipContext *chip_context, FILE *ROM);
-void LD_Vx_I(ChipContext *chip_context, FILE *ROM);
+void SYS_addr(ChipContext *chip_context, uint16_t raw_instruction);
+void CLS(ChipContext *chip_context, uint16_t raw_instruction);
+void RET(ChipContext *chip_context, uint16_t raw_instruction);
+void JP_addr(ChipContext *chip_context, uint16_t raw_instruction);
+void CALL_addr(ChipContext *chip_context, uint16_t raw_instruction);
+void SE_Vx_byte(ChipContext *chip_context, uint16_t raw_instruction);
+void SNE_Vx_byte(ChipContext *chip_context, uint16_t raw_instruction);
+void SE_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_Vx_byte(ChipContext *chip_context, uint16_t raw_instruction);
+void ADD_Vx_byte(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void OR_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void AND_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void XOR_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void ADD_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void SUB_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void SHR_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void SUBN_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void SUBN_Vx_VY(ChipContext *chip_context, uint16_t raw_instruction);
+void SHL_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void SNE_Vx_Vy(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_I_addr(ChipContext *chip_context, uint16_t raw_instruction);
+void JP_V0_addr(ChipContext *chip_context, uint16_t raw_instruction);
+void RND_Vx_byte(ChipContext *chip_context, uint16_t raw_instruction);
+void DRW_Vx_nibble(ChipContext *chip_context, uint16_t raw_instruction);
+void SKP_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void SKNP_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_Vx_DT(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_Vx_K(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_DT_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_ST_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void ADD_I_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_F_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_B_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_I_Vx(ChipContext *chip_context, uint16_t raw_instruction);
+void LD_Vx_I(ChipContext *chip_context, uint16_t raw_instruction);
+void ignore(ChipContext *chip_context, uint16_t raw_instruction);
