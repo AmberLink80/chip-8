@@ -1,17 +1,35 @@
-CC=gcc
-CFLAGS=-I.
-DEPS = chip-8.h
+CC      := gcc
+BUILD   ?= release
+SRC     := main.c chip-8.c
+OBJDIR  := build/$(BUILD)
+OBJ     := $(SRC:%.c=$(OBJDIR)/%.o)
+BIN     := $(OBJDIR)/chip-8
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+CFLAGS  := -I. -Wall -Wextra -MMD -MP
+LDLIBS  := -lSDL2
 
-make: chip-8.o
-	$(CC) -o chip-8 main.c chip-8.o -lSDL2
+ifeq ($(BUILD),debug)
+  CFLAGS += -g -O0 -DDEBUG
+else
+  CFLAGS += -O2 -DNDEBUG
+endif
 
-debug: chip-8.o
-	$(CC) -o chip-8 main.c chip-8.o -lSDL2 -g
+.PHONY: all debug clean
+
+all: $(BIN)
+
+debug:
+	$(MAKE) BUILD=debug
+
+$(BIN): $(OBJ)
+	$(CC) -o $@ $^ $(LDLIBS)
+
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm chip-8
-	rm chip-8.o
+	rm -rf build
+	rm -rf *.o
 
+-include $(OBJ:.o=.d)

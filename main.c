@@ -21,8 +21,7 @@ void hex_dump(ChipContext *chip_context, bool verbose) {
   if (verbose)
     printf("hex dump of memory at Progam Counter\n");
 
-  for (int i = chip_context->PC;
-       i < chip_context->PC + 0x50; i++) {
+  for (int i = 0; i + chip_context->PC < chip_context->PC + 0x50; i++) {
     printf("%04x ", chip_context->memory[i]);
     if ((i + 1) % 8 == 0) {
       printf("\n");
@@ -128,8 +127,7 @@ int main(int argc, char *argv[]) {
 
     // fetch instruction
     if (verbose)
-      printf("fetching instruction at PC[0x%04x]...\n",
-             chip_context->PC);
+      printf("fetching instruction at PC[0x%04x]...\n", chip_context->PC);
     uint16_t raw_instruction = fetch(chip_context);
     if (verbose)
       printf("fetched <0x%04x> at PC[0x%04x]\n", raw_instruction,

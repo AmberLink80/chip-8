@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "debug.h"
+
 const uint8_t SCREEN_WIDTH = 64;
 const uint8_t SCREEN_HEIGHT = 32;
 
@@ -55,30 +57,31 @@ const uint8_t SCREEN_HEIGHT = 32;
  * old computers on which Chip-8 was originally implemented. It is ignored by
  * modern interpreters. This will not be implemented.
  */
-void SYS_addr(ChipContext *chip8) { printf("SYS_addr\n"); }
+void SYS_addr(ChipContext *chip8) { LOG("executing SYS_addr\n"); }
 
 /**
  * 00E0 - CLC
  * Clear the display.
  */
 void CLS(ChipContext *chip8) {
+  LOG("executing CLS\n");
   memset(&(chip8->display), 0, sizeof(chip8->display));
 }
 
 /**
  * TODO:
- * 00E0 - CLC
+ * 00EE - RET
  * Return from a subroutine.The interpreter sets the program counter to the
  * address at the top of the stack, then subtracts 1 from the stack pointer.
  */
-void RET(ChipContext *chip8) { printf("void\n"); }
+void RET(ChipContext *chip8) { LOG("executing RET\n"); }
 
 /**
  * TODO:
  * 1nnn - JP addr
  * Jump to location nnn. The interpreter sets the program counter to nnn.
  */
-void JP_addr(ChipContext *chip8) {}
+void JP_addr(ChipContext *chip8) { LOG("executing JP_addr\n"); }
 
 /**
  * TODO:
@@ -87,7 +90,7 @@ void JP_addr(ChipContext *chip8) {}
  * puts the current PC on the top of the stack. The PC is then set to nnn.
  */
 
-void CALL_addr(ChipContext *chip8) { printf("CALL_addr\n"); }
+void CALL_addr(ChipContext *chip8) { LOG("executing CALL_addr\n"); }
 
 /**
  * TODO:
@@ -95,7 +98,7 @@ void CALL_addr(ChipContext *chip8) { printf("CALL_addr\n"); }
  * Skip next instruction if Vx = kk. The interpreter compares register Vx to
  * kk, and if they are equal, increments the program counter by 2.
  */
-void SE_Vx_byte(ChipContext *chip8) { printf("SE_Vx_byte\n"); }
+void SE_Vx_byte(ChipContext *chip8) { LOG("executing SE_Vx_byte\n"); }
 
 /**
  * TODO:
@@ -103,7 +106,7 @@ void SE_Vx_byte(ChipContext *chip8) { printf("SE_Vx_byte\n"); }
  * Skip next instruction if Vx != kk. The interpreter compares register Vx to
  * kk, and if they are not equal, increments the program counter by 2.
  */
-void SNE_Vx_byte(ChipContext *chip8) { printf("void\n"); }
+void SNE_Vx_byte(ChipContext *chip8) { LOG("executing SNE_Vx_byte\n"); }
 
 /**
  * TODO:
@@ -111,7 +114,7 @@ void SNE_Vx_byte(ChipContext *chip8) { printf("void\n"); }
  * Skip next instruction if Vx = Vy. The interpreter compares register Vx to
  * register Vy, and if they are equal, increments the program counter by 2.
  */
-void SE_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void SE_Vx_Vy(ChipContext *chip8) { LOG("executing SE_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -129,14 +132,14 @@ void LD_Vx_byte(ChipContext *chip8) {
  * Set Vx = Vx + kk. Adds the value kk to the value of register Vx, then
  * stores the result in Vx.
  */
-void ADD_Vx_byte(ChipContext *chip8) { printf("void\n"); }
+void ADD_Vx_byte(ChipContext *chip8) { LOG("executing ADD_Vx_byte\n"); }
 
 /**
  * TODO:
  * 8xy0 - LD Vx, Vy
  * Set Vx = Vy. Stores the value of register Vy in register Vx.
  */
-void LD_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void LD_Vx_Vy(ChipContext *chip8) { LOG("executing LD_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -146,7 +149,7 @@ void LD_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * two values, and if either bit is 1, then the same bit in the result is
  * also 1. Otherwise, it is 0.
  */
-void OR_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void OR_Vx_Vy(ChipContext *chip8) { LOG("executing OR_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -156,7 +159,7 @@ void OR_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * two values, and if both bits are 1, then the same bit in the result is
  * also 1. Otherwise, it is 0.
  */
-void AND_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void AND_Vx_Vy(ChipContext *chip8) { LOG("executing AND_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -166,7 +169,7 @@ void AND_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * corresponding bits from two values, and if the bits are not both the same,
  * then the corresponding bit in the result is set to 1. Otherwise, it is 0.
  */
-void XOR_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void XOR_Vx_Vy(ChipContext *chip8) { LOG("executing XOR_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -176,7 +179,7 @@ void XOR_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * 1, otherwise 0. Only the lowest 8 bits of the result are kept, and stored
  * in Vx.
  */
-void ADD_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void ADD_Vx_Vy(ChipContext *chip8) { LOG("executing ADD_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -184,7 +187,7 @@ void ADD_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * Set Vx = Vx - Vy, set VF = NOT borrow. If Vx ¿ Vy, then VF is set to 1,
  * otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
  */
-void SUB_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void SUB_Vx_Vy(ChipContext *chip8) { LOG("executing SUB_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -192,7 +195,7 @@ void SUB_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * Set Vx = Vx SHR 1. If the least-significant bit of Vx is 1, then VF is set
  * to 1, otherwise 0. Then Vx is divided by 2.
  */
-void SHR_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void SHR_Vx_Vy(ChipContext *chip8) { LOG("executing SHR_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -200,7 +203,7 @@ void SHR_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * Set Vx = Vy - Vx, set VF = NOT borrow. If Vy ¿ Vx, then VF is set to 1,
  * otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
  */
-void SUBN_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void SUBN_Vx_Vy(ChipContext *chip8) { LOG("executing SUBN_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -208,7 +211,7 @@ void SUBN_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * Set Vx = Vx SHL 1. If the most-significant bit of Vx is 1, then VF is set
  * to 1, otherwise to 0. Then Vx is multiplied by 2.
  */
-void SHL_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void SHL_Vx_Vy(ChipContext *chip8) { LOG("executing SHL_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -216,7 +219,7 @@ void SHL_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * Skip next instruction if Vx != Vy. The values of Vx and Vy are compared,
  * and if they are not equal, the program counter is increased by 2.
  */
-void SNE_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
+void SNE_Vx_Vy(ChipContext *chip8) { LOG("executing SNE_Vx_Vy\n"); }
 
 /**
  * TODO:
@@ -224,12 +227,13 @@ void SNE_Vx_Vy(ChipContext *chip8) { printf("void\n"); }
  * Set I = nnn. The value of register I is set to nnn.
  */
 void LD_I_addr(ChipContext *chip8) {
+  LOG("executing LD_I_addr\n");
   uint16_t processed_instruction =
       ((chip8->memory[chip8->PC] + 1) << 8) + chip8->memory[chip8->PC];
   chip8->v_addr = mask_0x0FFF(processed_instruction);
 }
 
-void JP_V0_addr(ChipContext *chip8) { printf("void\n"); }
+void JP_V0_addr(ChipContext *chip8) { LOG("executing JP_V0_addr\n"); }
 
 /**
  * TODO:
@@ -238,7 +242,7 @@ void JP_V0_addr(ChipContext *chip8) { printf("void\n"); }
  * 0 to 255, which is then ANDed with the value kk. The results are stored in
  * Vx. See instruction 8xy2 for more information on AND.
  */
-void RND_Vx_byte(ChipContext *chip8) { printf("void\n"); }
+void RND_Vx_byte(ChipContext *chip8) { LOG("executing RND_Vx_byte\n"); }
 
 /**
  * Dxyn - DRW Vx, Vy, nibble
@@ -251,12 +255,13 @@ void RND_Vx_byte(ChipContext *chip8) { printf("void\n"); }
  * display, it wraps around to the opposite side of the screen.
  */
 void DRW_Vx_nibble(ChipContext *chip8) {
+  LOG("executing DRW_Vx_nibble\n");
   uint8_t x = n0(chip8) & 0x0F;
   uint8_t y = n1(chip8) >> 4;
 
   size_t size = n0(chip8) & 0x0F;
 
-  for (int i = chip8->v_addr; i < size; i++) {
+  for (size_t i = chip8->v_addr; i < size; i++) {
     chip8->display[x][y] ^= chip8->memory[i];
   }
 }
@@ -268,7 +273,7 @@ void DRW_Vx_nibble(ChipContext *chip8) {
  * keyboard, and if the key corresponding to the value of Vx is currently in
  * the down position, PC is increased by 2.
  */
-void SKP_Vx(ChipContext *chip8) { printf("SKP_Vx\n"); }
+void SKP_Vx(ChipContext *chip8) { LOG("executing SKP_Vx\n"); }
 
 /**
  * TODO:
@@ -277,14 +282,14 @@ void SKP_Vx(ChipContext *chip8) { printf("SKP_Vx\n"); }
  * the keyboard, and if the key corresponding to the value of Vx is currently
  * in the up position, PC is increased by 2.
  */
-void SKNP_Vx(ChipContext *chip8) { printf("void\n"); }
+void SKNP_Vx(ChipContext *chip8) { LOG("executing SKNP_Vx\n"); }
 
 /**
  * TODO:
  * Fx07 - LD Vx, DT
  * Set Vx = delay timer value. The value of DT is placed into Vx.
  */
-void LD_Vx_DT(ChipContext *chip8) { printf("void\n"); }
+void LD_Vx_DT(ChipContext *chip8) { LOG("executing LD_Vx_DT\n"); }
 
 /**
  * TODO:
@@ -292,21 +297,21 @@ void LD_Vx_DT(ChipContext *chip8) { printf("void\n"); }
  * Wait for a key press, store the value of the key in Vx. All execution stops
  * until a key is pressed, then the value of that key is stored in Vx.
  */
-void LD_Vx_K(ChipContext *chip8) { printf("void\n"); }
+void LD_Vx_K(ChipContext *chip8) { LOG("executing LD_Vx_K\n"); }
 
 /**
  * TODO:
  * Fx15 - LD DT, Vx
  * Set delay timer = Vx. Delay Timer is set equal to the value of Vx.
  */
-void LD_DT_Vx(ChipContext *chip8) { printf("void\n"); }
+void LD_DT_Vx(ChipContext *chip8) { LOG("executing LD_DT_Vx\n"); }
 
 /**
  * TODO:
  * Fx18 - LD ST, Vx
  * Set sound timer = Vx. Sound Timer is set equal to the value of Vx.
  */
-void LD_ST_Vx(ChipContext *chip8) { printf("void\n"); }
+void LD_ST_Vx(ChipContext *chip8) { LOG("executing LD_ST_Vx\n"); }
 
 /**
  * TODO:
@@ -314,7 +319,7 @@ void LD_ST_Vx(ChipContext *chip8) { printf("void\n"); }
  * Set I = I + Vx. The values of I and Vx are added, and the results are
  * stored in I.
  */
-void ADD_I_Vx(ChipContext *chip8) { printf("void\n"); }
+void ADD_I_Vx(ChipContext *chip8) { LOG("executing ADD_I_Vx\n"); }
 
 /**
  * TODO:
@@ -325,7 +330,7 @@ void ADD_I_Vx(ChipContext *chip8) { printf("void\n"); }
  * To obtain this value, multiply VX by 5 (all font data stored in first 80
  * bytes of memory).
  */
-void LD_F_Vx(ChipContext *chip8) { printf("void\n"); }
+void LD_F_Vx(ChipContext *chip8) { LOG("executing LD_F_Vx\n"); }
 
 /**
  * TODO:
@@ -335,7 +340,7 @@ void LD_F_Vx(ChipContext *chip8) { printf("void\n"); }
  * memory at location in I, the tens digit at location I+1, and the ones digit
  * at location I+2.
  */
-void LD_B_Vx(ChipContext *chip8) { printf("void\n"); }
+void LD_B_Vx(ChipContext *chip8) { LOG("executing LD_B_Vx\n"); }
 
 /**
  * TODO:
@@ -343,7 +348,7 @@ void LD_B_Vx(ChipContext *chip8) { printf("void\n"); }
  * Stores V0 to VX in memory starting at address I. I is then set to I + x
  * + 1.
  */
-void LD_I_Vx(ChipContext *chip8) { printf("void\n"); }
+void LD_I_Vx(ChipContext *chip8) { LOG("executing LD_I_Vx\n"); }
 
 /**
  * TODO:
@@ -351,12 +356,12 @@ void LD_I_Vx(ChipContext *chip8) { printf("void\n"); }
  * Fills V0 to VX with values from memory starting at address I. I is then set
  * to I + x + 1.
  */
-void LD_Vx_I(ChipContext *chip8) { printf("LD_Vx_I\n"); }
+void LD_Vx_I(ChipContext *chip8) { LOG("executing LD_Vx_I\n"); }
 
 /**
  * bad instruction
  */
-void ignore(ChipContext *chip8) { printf("ignore\n"); }
+void ignore(ChipContext *chip8) { LOG("ignoring instruction\n"); }
 
 /**
  * @brief Print current state of display to terminal
