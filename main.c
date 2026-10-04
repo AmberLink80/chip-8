@@ -14,7 +14,8 @@
 
 void help() {
   printf("Chip-8 interpreter.\n");
-  printf("Usage: chip-8 [FILENAME] [OPTION]\n");
+  printf("Usage: chip-8 [OPTION]\n");
+  printf("  -f,         specify input file\n");
   printf("  -c,         stop at cycle n\n");
   printf("  -s,         set start of program (default 0x200)\n");
 }
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]) {
     printf("ROM closed\n");
     printf("hex dump of initial memory\n");
 
-    for (int i = 0x0; i < 0xFFF; i++) {
+    for (int i = 0x200; i < 0x300; i++) {
       printf("%04x ", chip_context->memory[i]);
       if ((i + 1) % 8 == 0) {
         printf("\n");
