@@ -1,7 +1,3 @@
-// TODO:
-// [ ] fix semantics that i missed bc tired TvT
-// [ ] catch up on documentation
-
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -18,16 +14,35 @@ void help() {
   printf("  -f,         specify input file\n");
   printf("  -c,         stop at cycle n\n");
   printf("  -s,         set start of program (default 0x200)\n");
+  printf("  -h,         print this help message\n");
 }
 
+void hex_dump(ChipContext *chip_context, bool verbose) {
+  if (verbose)
+    printf("hex dump of memory at Progam Counter\n");
+
+  for (int i = chip_context->PC;
+       i < chip_context->PC + 0x50; i++) {
+    printf("%04x ", chip_context->memory[i]);
+    if ((i + 1) % 8 == 0) {
+      printf("\n");
+    }
+  }
+
+  if (0xFF % 8 != 0) {
+    printf("\n");
+  }
+
+  printf("\n");
+}
 int main(int argc, char *argv[]) {
   bool verbose = false;
 
   FILE *ROM;
   ChipContext *chip_context = calloc(1, sizeof(ChipContext));
-  chip_context->memory = calloc(4096 / 2, sizeof(uint16_t));
+  // chip_context->memory = calloc(4096 / 2, sizeof(uint16_t));
   chip_context->stack = calloc(16, sizeof(uint16_t));
-  chip_context->program_counter = 0x200;
+  chip_context->PC = 0x200;
 
   int32_t cycles = -1;
 
@@ -39,7 +54,7 @@ int main(int argc, char *argv[]) {
 
   // update flags
   int opt;
-  while ((opt = getopt(argc, argv, "f:c:v")) != -1) {
+  while ((opt = getopt(argc, argv, "hf:c:v")) != -1) {
     switch (opt) {
     case 'f':
       if (verbose)
@@ -54,8 +69,11 @@ int main(int argc, char *argv[]) {
       cycles = atoi(optarg);
       break;
     case 's':
-      chip_context->program_counter = atoi(optarg);
+      chip_context->PC = atoi(optarg);
       break;
+    case 'h':
+      help();
+      exit(0);
     }
   }
 
@@ -64,7 +82,7 @@ int main(int argc, char *argv[]) {
     if (verbose)
       printf("file openned succesfully\n");
     size_t new_len =
-        fread(&(chip_context->memory[0x0]), sizeof(uint8_t), 3584, ROM);
+        fread(&(chip_context->memory[0x200]), sizeof(uint8_t), 4096, ROM);
     if (verbose)
       printf("Loaded %zu bytes into memory\n", new_len);
     fclose(ROM);
@@ -81,23 +99,13 @@ int main(int argc, char *argv[]) {
       0x10F0, 0xF090, 0xF090, 0x90E0, 0x90E0, 0x90E0, 0xF080, 0x8080,
       0xF0E0, 0x9090, 0x90E0, 0xF080, 0xF080, 0xF0F0, 0x80F0, 0x8080};
   for (int i = 0; i < 40; i++) {
-    // chip_context->memory[i] = default_sprites[i];
+    chip_context->memory[i] = default_sprites[i];
   }
 
   // stupid and messy but i don't really care right now
   if (verbose) {
     printf("ROM closed\n");
-    printf("hex dump of initial memory\n");
-
-    for (int i = 0x200; i < 0x300; i++) {
-      printf("%04x ", chip_context->memory[i]);
-      if ((i + 1) % 8 == 0) {
-        printf("\n");
-      }
-    }
-    if (0xFF % 8 != 0) {
-      printf("\n");
-    }
+    hex_dump(chip_context, verbose);
   }
 
   // run interpreter
@@ -109,6 +117,9 @@ int main(int argc, char *argv[]) {
 
   printf("cycles: %d\n", cycles);
   while (cycles > 0 || cycles == -1) {
+    printf("\nstarting cycle %d\n", cycles);
+    hex_dump(chip_context, verbose);
+
     // wait for 60hz
     while ((SDL_GetTicks64() - last_tick) < 16) {
       SDL_Delay(1); // Frees the CPU to prevent 100% core usage
@@ -117,24 +128,25 @@ int main(int argc, char *argv[]) {
 
     // fetch instruction
     if (verbose)
-      printf("fetching instruction...\n");
+      printf("fetching instruction at PC[0x%04x]...\n",
+             chip_context->PC);
     uint16_t raw_instruction = fetch(chip_context);
     if (verbose)
-      printf("fetched [0x%x] at PC [0x%x]\n", raw_instruction,
-             chip_context->program_counter);
+      printf("fetched <0x%04x> at PC[0x%04x]\n", raw_instruction,
+             chip_context->PC);
 
     if (verbose)
-      printf("decoding instruction...\n");
-    Instruction instruction = decode(raw_instruction);
+      printf("decoding instruction <0x%04x>...\n", raw_instruction);
+    Instruction instruction = decode(chip_context);
     if (verbose)
       printf("decoded\n");
 
     // execute instruction
     if (verbose)
-      printf("executing instruction <>\n");
-    instruction(chip_context, raw_instruction);
+      printf("executing instruction <0x%04x>\n", raw_instruction);
+    instruction(chip_context);
     if (verbose)
-      printf("executed instruction <>\n");
+      printf("executed instruction <0x%04x>\n", raw_instruction);
 
     // update display
     if (verbose)
@@ -148,13 +160,12 @@ int main(int argc, char *argv[]) {
       cycles--;
     }
 
-    chip_context->program_counter++;
+    chip_context->PC += 2;
 
     printf("cycle complete\n\n");
   }
 
-  // free(&(chip_context->display));
-  free(chip_context->memory);
+  // free(chip_context->memory);
   free(chip_context->stack);
   free(chip_context);
 

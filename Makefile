@@ -8,6 +8,9 @@ DEPS = chip-8.h
 make: chip-8.o
 	$(CC) -o chip-8 main.c chip-8.o -lSDL2
 
+debug: chip-8.o
+	$(CC) -o chip-8 main.c chip-8.o -lSDL2 -g
+
 clean:
 	rm chip-8
 	rm chip-8.o
