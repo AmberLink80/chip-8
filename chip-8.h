@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MEMORY_SIZE (4096)
+#define SCREEN_HEIGHT (32)
+#define SCREEN_WIDTH (64)
+
 typedef struct Keypad {
   // probablly some sort of pipe indicating "up <key>" and "down <key>"
 } Keypad;
@@ -21,24 +25,23 @@ typedef struct ChipContext {
   uint16_t v_addr; // vi
   uint16_t v_flag; // vf
 
+  uint8_t v_draw;  // for drawing in main
   uint8_t v_sound; // vs
   uint8_t v_delay; // vd
 
-  uint16_t PC; // program counter
-  uint8_t SP;  // stack pointer
+  uint16_t program_counter; // program counter
+  int8_t stack_pointer;    // stack pointer
 
   uint16_t *stack;
 
-  bool display[64][32];
-  Keypad keypad;
+  uint8_t display[SCREEN_HEIGHT * SCREEN_WIDTH];
+  uint8_t keypad[16]; // 1 is down 0 is up
 } ChipContext;
 
 typedef void (*Instruction)(ChipContext *chip_context);
 
-void print_display(bool display[64][32]);
-
 uint16_t fetch(ChipContext *chip_context);
-Instruction decode(ChipContext *chip_context);
+Instruction decode(uint16_t raw_instruction);
 
 // raw_instruction (uint16_t) will be held in the method call instruction
 // (Instruction)

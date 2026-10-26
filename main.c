@@ -1,4 +1,5 @@
-#include <SDL2/SDL.h>
+#include <locale.h>
+#include <ncurses.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -8,42 +9,51 @@
 
 #include "chip-8.h"
 
+#define PC (chip8->program_counter)
+
 void help() {
-  printf("Chip-8 interpreter.\n");
-  printf("Usage: chip-8 [OPTION]\n");
+  printf("chip8 interpreter.\n");
+  printf("Usage: chip8 [OPTION]\n");
   printf("  -f,         specify input file\n");
   printf("  -c,         stop at cycle n\n");
   printf("  -s,         set start of program (default 0x200)\n");
   printf("  -h,         print this help message\n");
 }
 
-void hex_dump(ChipContext *chip_context, bool verbose) {
-  if (verbose)
-    printf("hex dump of memory at Progam Counter\n");
-
-  for (int i = 0; i + chip_context->PC < chip_context->PC + 0x50; i++) {
-    printf("%04x ", chip_context->memory[i]);
-    if ((i + 1) % 8 == 0) {
-      printf("\n");
+// void draw(ChipContext *chip8) {
+//   erase();
+//   for (int y = 0; y < SCREEN_HEIGHT; y++) {
+//     move(y, 0);
+//     for (int x = 0; x < SCREEN_WIDTH; x++) {
+//       addch(chip8->display[y * SCREEN_WIDTH + x] ? ((char) 9632) : ' ');
+//     }
+//   }
+//   refresh();
+// }
+void draw(ChipContext *chip8) {
+  // erase();
+  for (int y = 0; y < SCREEN_HEIGHT; y++) {
+    move(y, 0);
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      int idx = y * (SCREEN_WIDTH / 8) + x / 8;
+      uint8_t mask = 0x80 >> (x % 8);
+      addch((chip8->display[idx] & mask) ? ((char)9632) : ' ');
     }
   }
-
-  if (0xFF % 8 != 0) {
-    printf("\n");
-  }
-
-  printf("\n");
+  refresh();
 }
+
 int main(int argc, char *argv[]) {
   bool verbose = false;
 
-  FILE *ROM;
-  ChipContext *chip_context = calloc(1, sizeof(ChipContext));
-  // chip_context->memory = calloc(4096 / 2, sizeof(uint16_t));
-  chip_context->stack = calloc(16, sizeof(uint16_t));
-  chip_context->PC = 0x200;
+  FILE *ROM = NULL;
+  ChipContext *chip8 = calloc(1, sizeof(ChipContext));
+  // chip8->memory = calloc(4096 / 2, sizeof(uint16_t));
+  chip8->stack = calloc(16, sizeof(uint16_t));
+  chip8->stack_pointer = -1;
+  PC = 0x200;
 
-  int32_t cycles = -1;
+  uint32_t cycles_original = -1;
 
   // no file specified
   if (argc < 2) {
@@ -53,7 +63,7 @@ int main(int argc, char *argv[]) {
 
   // update flags
   int opt;
-  while ((opt = getopt(argc, argv, "hf:c:v")) != -1) {
+  while ((opt = getopt(argc, argv, "hf:c:vs:")) != -1) {
     switch (opt) {
     case 'f':
       if (verbose)
@@ -65,10 +75,10 @@ int main(int argc, char *argv[]) {
       verbose = true;
       break;
     case 'c':
-      cycles = atoi(optarg);
+      cycles_original = strtol(optarg, NULL, 0);
       break;
     case 's':
-      chip_context->PC = atoi(optarg);
+      PC = atoi(optarg);
       break;
     case 'h':
       help();
@@ -77,11 +87,12 @@ int main(int argc, char *argv[]) {
   }
 
   // file failed to open
-  if (ROM) {
+  size_t new_len = 0;
+  if (ROM != NULL) {
     if (verbose)
       printf("file openned succesfully\n");
-    size_t new_len =
-        fread(&(chip_context->memory[0x200]), sizeof(uint8_t), 4096, ROM);
+    new_len =
+        fread(&(chip8->memory[0x200]), sizeof(uint8_t), 4096 - 0x200, ROM);
     if (verbose)
       printf("Loaded %zu bytes into memory\n", new_len);
     fclose(ROM);
@@ -91,81 +102,64 @@ int main(int argc, char *argv[]) {
   }
 
   // load ROM & cleanup
-  uint16_t default_sprites[] = {
-      0xF090, 0x9090, 0xF020, 0x6020, 0x2070, 0xF010, 0xF080, 0xF0F0,
-      0x10F0, 0x10F0, 0xF080, 0xF010, 0xF0F0, 0x80F0, 0x10F0, 0xF080,
-      0xF090, 0xF0F0, 0x1020, 0x4040, 0xF090, 0xF090, 0xF0F0, 0x90F0,
-      0x10F0, 0xF090, 0xF090, 0x90E0, 0x90E0, 0x90E0, 0xF080, 0x8080,
-      0xF0E0, 0x9090, 0x90E0, 0xF080, 0xF080, 0xF0F0, 0x80F0, 0x8080};
-  for (int i = 0; i < 40; i++) {
-    chip_context->memory[i] = default_sprites[i];
-  }
+  uint8_t default_sprites[80] = {
+      0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+      0x20, 0x60, 0x20, 0x20, 0x70, // 1
+      0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+      0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+      0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+      0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+      0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+      0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+      0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+      0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+      0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+      0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+      0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+      0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+      0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+      0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+  };
+  memcpy(chip8->memory, default_sprites, sizeof default_sprites);
 
-  // stupid and messy but i don't really care right now
-  if (verbose) {
-    printf("ROM closed\n");
-    hex_dump(chip_context, verbose);
-  }
+  // initialize curses
+  initscr();
+  cbreak();
+  curs_set(0);
+  noecho();
+  keypad(stdscr, TRUE);
+  nodelay(stdscr, TRUE); // getch() returns ERR instead of blocking
+  setlocale(LC_ALL, "");
 
-  // run interpreter
-  // if (verbose)
-  //   printf("initializing timer...\n");
-  // if (verbose)
-  //   printf("timer initialized");
-  uint64_t last_tick = SDL_GetTicks64();
-
-  printf("cycles: %d\n", cycles);
+  // initialize cycles
+  int32_t cycles = cycles_original;
   while (cycles > 0 || cycles == -1) {
-    printf("\nstarting cycle %d\n", cycles);
-    hex_dump(chip_context, verbose);
+    int ch = getch();
+    if (ch == 'q')
+      break;
 
-    // wait for 60hz
-    while ((SDL_GetTicks64() - last_tick) < 16) {
-      SDL_Delay(1); // Frees the CPU to prevent 100% core usage
-    }
-    last_tick = SDL_GetTicks64();
-
-    // fetch instruction
-    if (verbose)
-      printf("fetching instruction at PC[0x%04x]...\n", chip_context->PC);
-    uint16_t raw_instruction = fetch(chip_context);
-    if (verbose)
-      printf("fetched <0x%04x> at PC[0x%04x]\n", raw_instruction,
-             chip_context->PC);
-
-    if (verbose)
-      printf("decoding instruction <0x%04x>...\n", raw_instruction);
-    Instruction instruction = decode(chip_context);
-    if (verbose)
-      printf("decoded\n");
-
-    // execute instruction
-    if (verbose)
-      printf("executing instruction <0x%04x>\n", raw_instruction);
-    instruction(chip_context);
-    if (verbose)
-      printf("executed instruction <0x%04x>\n", raw_instruction);
-
-    // update display
-    if (verbose)
-      printf("printing screen...\n");
-    print_display(chip_context->display);
-    if (verbose)
-      printf("printed\n");
+    // fetch->decode->execute instruction
+    uint16_t raw_instruction = fetch(chip8);
+    Instruction instruction = decode(raw_instruction);
+    instruction(chip8);
 
     // update cycle
     if (cycles != -1) {
       cycles--;
     }
 
-    chip_context->PC += 2;
-
-    printf("cycle complete\n\n");
+    // update display
+    if (chip8->v_draw) {
+      chip8->v_draw = 0;
+      draw(chip8);
+      napms(16); // ~60Hz
+    }
   }
 
-  // free(chip_context->memory);
-  free(chip_context->stack);
-  free(chip_context);
+  // free(chip8->memory);
+  endwin();
+  free(chip8->stack);
+  free(chip8);
 
   return 0;
 }

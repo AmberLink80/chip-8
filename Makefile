@@ -6,7 +6,7 @@ OBJ     := $(SRC:%.c=$(OBJDIR)/%.o)
 BIN     := $(OBJDIR)/chip-8
 
 CFLAGS  := -I. -Wall -Wextra -MMD -MP
-LDLIBS  := -lSDL2
+LDLIBS  := -lncurses
 
 ifeq ($(BUILD),debug)
   CFLAGS += -g -O0 -DDEBUG
